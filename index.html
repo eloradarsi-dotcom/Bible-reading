@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Vakyadhaara – Track Your Time Learning About Jesus</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0c10;color:#e8e0d0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;max-width:480px;margin:0 auto}
+input,button{font-family:inherit}
+@keyframes fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes popIn{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+.confetti-piece{position:fixed;top:0;pointer-events:none;z-index:9999;border-radius:2px;animation:fall 2.4s ease-in forwards}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(13,25,30,.96);border:1px solid #a8d8d0;border-radius:32px;padding:11px 24px;font-size:14px;color:#a8d8d0;z-index:1000;display:flex;align-items:center;gap:8px;box-shadow:0 4px 32px rgba(0,0,0,.6);font-weight:600;white-space:nowrap;animation:slideUp .25s ease}
+.cel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:1001;padding:0 24px}
+.cel-card{background:linear-gradient(135deg,#0d1f24,#0a1a1e);border:1px solid #a8d8d0;border-radius:28px;padding:36px 32px;text-align:center;width:100%;max-width:320px;box-shadow:0 0 80px rgba(168,216,208,.25);animation:popIn .35s ease}
+.badge-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1001;display:flex;flex-direction:column;justify-content:flex-end}
+.badge-sheet{background:#0d1518;border-radius:24px 24px 0 0;padding:24px 20px 48px;max-height:75vh;overflow-y:auto}
+.hero-card{margin:0 16px 14px;background:linear-gradient(135deg,#0d2028,#0a1820);border:1px solid #1a3a40;border-radius:22px;padding:20px;position:relative;overflow:hidden}
+.stat-box{background:#0a1215;border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer}
+.book-wrap{border-radius:18px;overflow:hidden;transition:border-color .2s}
+.book-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.book-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.chap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:7px}
+.chbtn{height:40px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;border:1.5px solid #1a2e30;background:#0d1518;color:#3a6a70}
+.chbtn.done{background:linear-gradient(135deg,#4a9a90,#a8d8d0);border-color:#a8d8d0;color:#0a0c10;box-shadow:0 0 10px rgba(168,216,208,.3)}
+.chbtn:active{transform:scale(.88)}
+.fbtn{padding:8px 18px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;border:1.5px solid #1a2e30;background:transparent;color:#4a7870}
+.fbtn.on{background:#a8d8d0;border-color:#a8d8d0;color:#0a0c10;font-weight:700}
+</style>
+</head>
+<body>
+
+<div id="conf-box"></div>
+
+<div id="toast-el" class="toast" style="display:none">
+  <span id="toast-icon"></span><span id="toast-msg"></span>
+</div>
+
+<div id="cel-overlay" class="cel-overlay" style="display:none" onclick="hideCel()">
+  <div class="cel-card" onclick="event.stopPropagation()">
+    <div id="cel-icon" style="font-size:60px;margin-bottom:12px;line-height:1"></div>
+    <div style="font-size:10px;letter-spacing:4px;color:#4a9890;text-transform:uppercase;margin-bottom:8px">Achievement Unlocked</div>
+    <div id="cel-label" style="font-size:22px;color:#a8d8d0;font-weight:700;margin-bottom:10px"></div>
+    <div id="cel-msg" style="font-size:15px;color:#9ab8b4;line-height:1.7;margin-bottom:20px"></div>
+    <div style="font-size:11px;color:#2a5a5a;border:1px solid #1a3a3e;border-radius:20px;padding:8px 20px;display:inline-block" onclick="hideCel()">Tap to continue</div>
+  </div>
+</div>
+
+<div id="badge-overlay" class="badge-overlay" style="display:none" onclick="hideBadges()">
+  <div class="badge-sheet" onclick="event.stopPropagation()">
+    <div style="width:36px;height:4px;background:#1a2e30;border-radius:2px;margin:0 auto 20px"></div>
+    <div style="font-size:11px;letter-spacing:3px;color:#4a7070;text-transform:uppercase;margin-bottom:16px">Your Badges &middot; <span id="bdg-count">0</span>/10</div>
+    <div id="bdg-list"></div>
+  </div>
+</div>
+
+<div style="padding-bottom:32px">
+
+  <div style="padding:32px 20px 20px;text-align:center">
+    <div style="font-size:10px;letter-spacing:5px;color:#4a7870;margin-bottom:8px;text-transform:uppercase">Vakyadhaara</div>
+    <div style="font-size:24px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:8px">
+      Track Your Time Spent<br>
+      <span style="background:linear-gradient(90deg,#a8d8d0,#7ab8b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Learning About Jesus</span>
+    </div>
+    <div style="font-size:12px;color:#4a7870;font-style:italic">"Your word is a lamp to my feet" — Psalm 119:105</div>
+  </div>
+
+  <div class="hero-card">
+    <div style="position:absolute;top:-30px;right:-20px;font-size:100px;opacity:.04;user-select:none">✞</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div style="font-size:10px;letter-spacing:3px;color:#4a7070;text-transform:uppercase;margin-bottom:4px">Progress</div>
+        <div style="font-size:38px;font-weight:800;line-height:1;color:#a8d8d0">
+          <span id="h-pct">0</span><span style="font-size:20px;color:#3a6a70;font-weight:400">%</span>
+        </div>
+        <div style="font-size:12px;color:#4a6a70;margin-top:2px"><span id="h-done">0</span> of 1189 chapters</div>
+      </div>
+      <div id="h-next" style="background:#0a1520;border:1px solid #1a3040;border-radius:16px;padding:10px 14px;text-align:center;min-width:100px"></div>
+    </div>
+    <div style="background:#0a1215;border-radius:20px;height:10px;overflow:hidden;margin-bottom:6px">
+      <div id="h-bar" style="background:linear-gradient(90deg,#4a9a90,#a8d8d0);height:100%;width:0%;border-radius:20px;transition:width .5s;box-shadow:0 0 10px rgba(168,216,208,.35)"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#1a4050;margin-bottom:16px">
+      <span id="h-pl">0 chapters</span><span id="h-pr"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="stat-box">
+        <div style="font-size:16px;font-weight:700;color:#5e8b5e"><span id="h-ot">0</span><span style="font-size:10px;color:#2a4a50;font-weight:400">/929</span></div>
+        <div style="font-size:9px;color:#2a4a50;letter-spacing:1px;text-transform:uppercase;margin-top:2px;line-height:1.3">Old Test.</div>
+      </div>
+      <div class="stat-box">
+        <div style="font-size:16px;font-weight:700;color:#a8d8d0"><span id="h-nt">0</span><span style="font-size:10px;color:#2a4a50;font-weight:400">/260</span></div>
+        <div style="font-size:9px;color:#2a4a50;letter-spacing:1px;text-transform:uppercase;margin-top:2px;line-height:1.3">New Test.</div>
+      </div>
+      <div class="stat-box" onclick="showBadges()">
+        <div style="font-size:16px;font-weight:700;color:#c8a06a"><span id="h-bdg">0</span><span style="font-size:10px;color:#2a4a50;font-weight:400">/10</span></div>
+        <div style="font-size:9px;color:#2a4a50;letter-spacing:1px;text-transform:uppercase;margin-top:2px;line-height:1.3">Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px;margin-bottom:12px">
+    <div style="position:relative;margin-bottom:10px">
+      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;color:#2a4a50">&#128269;</span>
+      <input id="srch" oninput="render()" placeholder="Search book..." style="width:100%;padding:11px 14px 11px 38px;border-radius:14px;border:1px solid #1a2e30;background:#0d1518;color:#e8e0d0;font-size:15px;outline:none;-webkit-appearance:none"/>
+    </div>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+      <button class="fbtn on" id="fALL" onclick="setFilter('ALL')">All Books</button>
+      <button class="fbtn" id="fOT" onclick="setFilter('OT')">Old Testament</button>
+      <button class="fbtn" id="fNT" onclick="setFilter('NT')">New Testament</button>
+      <span id="sav-lbl" style="font-size:11px;color:#2a5a5a;align-self:center;flex-shrink:0;display:none">saving...</span>
+    </div>
+  </div>
+
+  <div id="book-list" style="display:flex;flex-direction:column;gap:6px;padding:0 16px"></div>
+
+  <div style="text-align:center;margin-top:28px;font-size:9px;color:#1a2a30;letter-spacing:3px">
+    VAKYADHAARA &middot; 66 BOOKS &middot; 1,189 CHAPTERS
+  </div>
+</div>
+
+<script>
+var BOOKS = [
+  {b:"Genesis",ch:50,t:"OT"},{b:"Exodus",ch:40,t:"OT"},{b:"Leviticus",ch:27,t:"OT"},
+  {b:"Numbers",ch:36,t:"OT"},{b:"Deuteronomy",ch:34,t:"OT"},{b:"Joshua",ch:24,t:"OT"},
+  {b:"Judges",ch:21,t:"OT"},{b:"Ruth",ch:4,t:"OT"},{b:"1 Samuel",ch:31,t:"OT"},
+  {b:"2 Samuel",ch:24,t:"OT"},{b:"1 Kings",ch:22,t:"OT"},{b:"2 Kings",ch:25,t:"OT"},
+  {b:"1 Chronicles",ch:29,t:"OT"},{b:"2 Chronicles",ch:36,t:"OT"},{b:"Ezra",ch:10,t:"OT"},
+  {b:"Nehemiah",ch:13,t:"OT"},{b:"Esther",ch:10,t:"OT"},{b:"Job",ch:42,t:"OT"},
+  {b:"Psalms",ch:150,t:"OT",now:true},{b:"Proverbs",ch:31,t:"OT"},
+  {b:"Ecclesiastes",ch:12,t:"OT"},{b:"Song of Solomon",ch:8,t:"OT"},
+  {b:"Isaiah",ch:66,t:"OT"},{b:"Jeremiah",ch:52,t:"OT"},{b:"Lamentations",ch:5,t:"OT"},
+  {b:"Ezekiel",ch:48,t:"OT"},{b:"Daniel",ch:12,t:"OT"},{b:"Hosea",ch:14,t:"OT"},
+  {b:"Joel",ch:3,t:"OT"},{b:"Amos",ch:9,t:"OT"},{b:"Obadiah",ch:1,t:"OT"},
+  {b:"Jonah",ch:4,t:"OT"},{b:"Micah",ch:7,t:"OT"},{b:"Nahum",ch:3,t:"OT"},
+  {b:"Habakkuk",ch:3,t:"OT"},{b:"Zephaniah",ch:3,t:"OT"},{b:"Haggai",ch:2,t:"OT"},
+  {b:"Zechariah",ch:14,t:"OT"},{b:"Malachi",ch:4,t:"OT"},
+  {b:"Matthew",ch:28,t:"NT"},{b:"Mark",ch:16,t:"NT"},{b:"Luke",ch:24,t:"NT"},
+  {b:"John",ch:21,t:"NT"},{b:"Acts",ch:28,t:"NT"},{b:"Romans",ch:16,t:"NT"},
+  {b:"1 Corinthians",ch:16,t:"NT"},{b:"2 Corinthians",ch:13,t:"NT"},
+  {b:"Galatians",ch:6,t:"NT"},{b:"Ephesians",ch:6,t:"NT"},{b:"Philippians",ch:4,t:"NT"},
+  {b:"Colossians",ch:4,t:"NT"},{b:"1 Thessalonians",ch:5,t:"NT"},
+  {b:"2 Thessalonians",ch:3,t:"NT"},{b:"1 Timothy",ch:6,t:"NT"},
+  {b:"2 Timothy",ch:4,t:"NT"},{b:"Titus",ch:3,t:"NT"},{b:"Philemon",ch:1,t:"NT"},
+  {b:"Hebrews",ch:13,t:"NT"},{b:"James",ch:5,t:"NT"},{b:"1 Peter",ch:5,t:"NT"},
+  {b:"2 Peter",ch:3,t:"NT"},{b:"1 John",ch:5,t:"NT"},{b:"2 John",ch:1,t:"NT"},
+  {b:"3 John",ch:1,t:"NT"},{b:"Jude",ch:1,t:"NT"},{b:"Revelation",ch:22,t:"NT"}
+];
+
+var REWARDS = [
+  {at:1,   icon:"🌱", label:"First Step",         msg:"You have begun the greatest journey."},
+  {at:10,  icon:"🔥", label:"On Fire",            msg:"10 chapters! The Word is alive in you."},
+  {at:25,  icon:"⭐", label:"Seeker",             msg:"25 chapters deep. Keep seeking!"},
+  {at:50,  icon:"📖", label:"Devoted Reader",     msg:"50 chapters! Your faith is growing."},
+  {at:100, icon:"🏅", label:"Century Mark",       msg:"100 chapters! You are truly dedicated."},
+  {at:150, icon:"💎", label:"Psalms Complete",    msg:"All 150 Psalms! A heart after God."},
+  {at:250, icon:"🌟", label:"Word Walker",        msg:"250 chapters! Walking in the Word."},
+  {at:500, icon:"🏆", label:"Halfway There",      msg:"500 chapters! Halfway through the Bible!"},
+  {at:929, icon:"👑", label:"Old Testament Done", msg:"The entire Old Testament! Incredible."},
+  {at:1189,icon:"✝️", label:"Bible Complete",     msg:"You have read the entire Holy Bible. Glory!"}
+];
+
+var done = {};
+var openBook = "Psalms";
+var curFilter = "ALL";
+var prevTotal = 0;
+var toastTimer = null;
+
+function load() {
+  try {
+    var s = localStorage.getItem("vd_en");
+    if (s) { done = JSON.parse(s); }
+  } catch(e) {}
+  for (var i = 0; i < BOOKS.length; i++) {
+    if (!done[BOOKS[i].b]) { done[BOOKS[i].b] = {}; }
+  }
+  prevTotal = totalDone();
+}
+
+function saveDone() {
+  try { localStorage.setItem("vd_en", JSON.stringify(done)); } catch(e) {}
+  var lbl = document.getElementById("sav-lbl");
+  lbl.style.display = "inline";
+  setTimeout(function() { lbl.style.display = "none"; }, 900);
+}
+
+function rec(book) {
+  var b = done[book];
+  if (!b) return 0;
+  var vals = Object.values(b);
+  var count = 0;
+  for (var i = 0; i < vals.length; i++) { if (vals[i]) count++; }
+  return count;
+}
+
+function totalDone() {
+  var total = 0;
+  for (var i = 0; i < BOOKS.length; i++) { total += rec(BOOKS[i].b); }
+  return total;
+}
+
+function updateHero() {
+  var td = totalDone();
+  var pct = Math.round(td / 1189 * 100);
+  var otD = 0; var ntD = 0;
+  for (var i = 0; i < BOOKS.length; i++) {
+    if (BOOKS[i].t === "OT") { otD += rec(BOOKS[i].b); }
+    else { ntD += rec(BOOKS[i].b); }
+  }
+  var earned = 0;
+  for (var j = 0; j < REWARDS.length; j++) { if (REWARDS[j].at <= td) earned++; }
+  var next = null;
+  for (var k = 0; k < REWARDS.length; k++) { if (REWARDS[k].at > td) { next = REWARDS[k]; break; } }
+
+  document.getElementById("h-pct").textContent = pct;
+  document.getElementById("h-done").textContent = td;
+  document.getElementById("h-bar").style.width = pct + "%";
+  document.getElementById("h-pl").textContent = td + " chapters";
+  document.getElementById("h-ot").textContent = otD;
+  document.getElementById("h-nt").textContent = ntD;
+  document.getElementById("h-bdg").textContent = earned;
+  document.getElementById("bdg-count").textContent = earned;
+
+  var nb = document.getElementById("h-next");
+  if (next) {
+    document.getElementById("h-pr").textContent = next.at + " chapters";
+    nb.innerHTML = '<div style="font-size:10px;letter-spacing:2px;color:#3a6a70;text-transform:uppercase;margin-bottom:4px">Next</div>'
+      + '<div style="font-size:24px">' + next.icon + '</div>'
+      + '<div style="font-size:11px;color:#7ab8b0;font-weight:600;margin-top:2px">' + next.label + '</div>'
+      + '<div style="font-size:10px;color:#3a6a70;margin-top:1px">' + (next.at - td) + ' to go</div>';
+  }
+}
+
+function render() {
+  var q = document.getElementById("srch").value.toLowerCase();
+  var list = document.getElementById("book-list");
+  list.innerHTML = "";
+
+  for (var i = 0; i < BOOKS.length; i++) {
+    var bk = BOOKS[i];
+    if (curFilter !== "ALL" && bk.t !== curFilter) continue;
+    if (q && bk.b.toLowerCase().indexOf(q) === -1) continue;
+
+    var r = rec(bk.b);
+    var p = Math.round(r / bk.ch * 100);
+    var isDone = r === bk.ch;
+    var isOpen = openBook === bk.b;
+
+    var borderColor = isOpen ? "#2a5060" : (isDone ? "#1a3a2a" : "#111820");
+    var bgColor = bk.now ? "#0d1f26" : (isDone ? "#0a1a10" : "#0d1215");
+    var icon = isDone ? "✅" : (bk.now ? "📖" : (bk.t === "NT" ? "✝️" : "📜"));
+    var iconBg = isDone ? "#1a3a2a" : (bk.now ? "#0a2a34" : "#0a1520");
+    var iconBorder = isDone ? "#3a6a4a" : (bk.now ? "#2a5a68" : "#1a2a38");
+    var nameColor = isDone ? "#5e8b5e" : (bk.now ? "#a8d8d0" : "#c8e0dc");
+    var barColor = isDone ? "linear-gradient(90deg,#3a7a5a,#5e8b5e)" : (bk.now ? "linear-gradient(90deg,#4a9a90,#a8d8d0)" : "#1a4050");
+    var statColor = isDone ? "#5e8b5e" : "#a8d8d0";
+
+    var wrap = document.createElement("div");
+    wrap.className = "book-wrap";
+    wrap.style.border = "1px solid " + borderColor;
+    wrap.style.background = bgColor;
+
+    var nowBadge = bk.now ? '<span style="font-size:9px;background:#a8d8d0;color:#0a0c10;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px;flex-shrink:0">NOW</span>' : "";
+    var doneBadge = isDone ? '<span style="font-size:9px;background:#1a3a2a;color:#5e8b5e;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px;flex-shrink:0">DONE</span>' : "";
+
+    var rowHTML = '<div class="book-row" data-book="' + bk.b + '">'
+      + '<div class="book-icon" style="background:' + iconBg + ';border:1px solid ' + iconBorder + '">' + icon + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">'
+      + '<span style="font-size:15px;font-weight:600;color:' + nameColor + '">' + bk.b + '</span>' + nowBadge + doneBadge
+      + '</div>'
+      + '<div style="background:#0a1215;border-radius:6px;height:5px;overflow:hidden">'
+      + '<div style="background:' + barColor + ';height:100%;width:' + p + '%;border-radius:6px;transition:width .4s"></div>'
+      + '</div></div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<div style="font-size:14px;font-weight:700;color:' + statColor + ';line-height:1">' + r
+      + '<span style="font-size:10px;color:#2a4a50;font-weight:400">/' + bk.ch + '</span></div>'
+      + '<div style="font-size:10px;color:#2a5060;margin-top:3px">' + p + '%</div>'
+      + '</div>'
+      + '<div style="color:#2a4a50;font-size:13px;flex-shrink:0;margin-left:2px">' + (isOpen ? "▲" : "▼") + '</div>'
+      + '</div>';
+
+    wrap.innerHTML = rowHTML;
+
+    if (isOpen) {
+      var panel = document.createElement("div");
+      panel.style.cssText = "background:#080b0e;border-top:1px solid #1a2530;padding:16px 14px 18px";
+      var gridHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+        + '<div style="font-size:11px;color:#4a7870;letter-spacing:1px;text-transform:uppercase">' + bk.b + ' &middot; Chapters</div>'
+        + '<div style="font-size:11px;color:#4a9890;font-weight:600">' + r + '/' + bk.ch + ' logged</div>'
+        + '</div><div class="chap-grid">';
+      for (var c = 1; c <= bk.ch; c++) {
+        var cd = done[bk.b] && done[bk.b][c] ? true : false;
+        gridHTML += '<button class="chbtn' + (cd ? ' done' : '') + '" data-book="' + bk.b + '" data-ch="' + c + '">' + c + '</button>';
+      }
+      gridHTML += '</div><div style="font-size:11px;color:#1a4050;margin-top:12px;text-align:center">Tap a chapter to mark it as read ✓</div>';
+      panel.innerHTML = gridHTML;
+      wrap.appendChild(panel);
+    }
+
+    list.appendChild(wrap);
+  }
+
+  // Event listeners
+  var rows = list.querySelectorAll(".book-row");
+  for (var ri = 0; ri < rows.length; ri++) {
+    rows[ri].addEventListener("click", onBookClick);
+  }
+  var cbtns = list.querySelectorAll(".chbtn");
+  for (var ci = 0; ci < cbtns.length; ci++) {
+    cbtns[ci].addEventListener("click", onChapClick);
+  }
+}
+
+function onBookClick(e) {
+  var name = e.currentTarget.getAttribute("data-book");
+  openBook = (openBook === name) ? null : name;
+  render();
+}
+
+function onChapClick(e) {
+  e.stopPropagation();
+  var book = e.currentTarget.getAttribute("data-book");
+  var ch = parseInt(e.currentTarget.getAttribute("data-ch"), 10);
+  if (!done[book]) done[book] = {};
+  done[book][ch] = !done[book][ch];
+
+  var newTotal = totalDone();
+  var r = rec(book);
+  var bk = null;
+  for (var i = 0; i < BOOKS.length; i++) { if (BOOKS[i].b === book) { bk = BOOKS[i]; break; } }
+  var isBookNowDone = bk && (r === bk.ch);
+
+  var reward = null;
+  if (newTotal > prevTotal) {
+    for (var j = 0; j < REWARDS.length; j++) {
+      if (REWARDS[j].at === newTotal) { reward = REWARDS[j]; break; }
+    }
+  }
+
+  if (reward) {
+    fireConfetti();
+    showCel(reward);
+  } else if (isBookNowDone && done[book][ch]) {
+    fireConfetti();
+    showToast(book + " complete!", "🎊", 3000);
+  } else if (done[book][ch]) {
+    showToast("Chapter logged!", "✓", 2200);
+  }
+
+  prevTotal = newTotal;
+  saveDone();
+  updateHero();
+  render();
+}
+
+function fireConfetti() {
+  var box = document.getElementById("conf-box");
+  box.innerHTML = "";
+  var colors = ["#a8d8d0","#ffd700","#ff6b6b","#c8f0e8","#7ab8b0","#ffffff"];
+  for (var i = 0; i < 30; i++) {
+    var el = document.createElement("div");
+    var size = 5 + Math.random() * 7;
+    el.className = "confetti-piece";
+    el.style.left = (20 + Math.random() * 60) + "%";
+    el.style.width = size + "px";
+    el.style.height = size + "px";
+    el.style.background = colors[i % 6];
+    el.style.animationDelay = (Math.random() * 0.5) + "s";
+    box.appendChild(el);
+  }
+  setTimeout(function() { box.innerHTML = ""; }, 2800);
+}
+
+function showToast(msg, icon, dur) {
+  if (toastTimer) clearTimeout(toastTimer);
+  document.getElementById("toast-icon").textContent = icon;
+  document.getElementById("toast-msg").textContent = msg;
+  var t = document.getElementById("toast-el");
+  t.style.display = "flex";
+  toastTimer = setTimeout(function() { t.style.display = "none"; }, dur);
+}
+
+function showCel(r) {
+  document.getElementById("cel-icon").textContent = r.icon;
+  document.getElementById("cel-label").textContent = r.label;
+  document.getElementById("cel-msg").textContent = r.msg;
+  document.getElementById("cel-overlay").style.display = "flex";
+}
+
+function hideCel() {
+  document.getElementById("cel-overlay").style.display = "none";
+}
+
+function showBadges() {
+  var td = totalDone();
+  var html = "";
+  for (var i = 0; i < REWARDS.length; i++) {
+    var r = REWARDS[i];
+    var earned = r.at <= td;
+    var op = earned ? "1" : "0.35";
+    var ibg = earned ? "#0a2530" : "#0a1215";
+    var ibr = earned ? "#2a5a60" : "#1a2530";
+    var nc = earned ? "#a8d8d0" : "#4a7070";
+    var check = earned ? '<div style="margin-left:auto;font-size:16px">✅</div>' : "";
+    html += '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #0f1a1c;opacity:' + op + '">'
+      + '<div style="width:44px;height:44px;border-radius:12px;background:' + ibg + ';border:1px solid ' + ibr + ';display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">' + r.icon + '</div>'
+      + '<div><div style="font-size:14px;font-weight:600;color:' + nc + '">' + r.label + '</div>'
+      + '<div style="font-size:12px;color:#4a7070;margin-top:2px">' + (earned ? "Earned! " + r.msg : "Unlock at " + r.at + " chapters") + '</div></div>'
+      + check + '</div>';
+  }
+  document.getElementById("bdg-list").innerHTML = html;
+  document.getElementById("badge-overlay").style.display = "flex";
+}
+
+function hideBadges() {
+  document.getElementById("badge-overlay").style.display = "none";
+}
+
+function setFilter(f) {
+  curFilter = f;
+  var ids = ["ALL","OT","NT"];
+  for (var i = 0; i < ids.length; i++) {
+    var btn = document.getElementById("f" + ids[i]);
+    btn.className = "fbtn" + (ids[i] === f ? " on" : "");
+  }
+  render();
+}
+
+load();
+updateHero();
+render();
+</script>
+</body>
+</html>
